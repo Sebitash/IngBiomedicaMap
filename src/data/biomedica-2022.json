@@ -228,5 +228,14 @@
     "level": 6,
     "correlativas": "CB03",
     "correlativasRegularizadas": "IB001"
+  },
+  {
+    "id": "IB007",
+    "materia": "Electronica Digital I",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 7,
+    "correlativas": "CB06-IE004",
+    "correlativasRegularizadas": "IE107-IE011"
   }
 ]

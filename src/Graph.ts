@@ -21,10 +21,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // Guardamos cuantos aplazos se tienen para computar en el promedio
   const [aplazos, setAplazos] = React.useState(0);
 
-  const saveTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
   // La network es nuestra interfaz con vis.js
   // Nos da acceso a los nodos, las aristas y varias funciones
   // https://visjs.github.io/vis-network/docs/network/
@@ -240,9 +236,15 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
       showRelevantes();
       network.fit();
     } else {
-      console.log('[Graph] No map found in DB, keeping current state');
-      // Si no hay mapa guardado en la DB, mantener el estado actual
-      // (no resetear para no borrar materias aprobadas antes de guardar)
+      console.log('[Graph] No map found in DB, initializing with CPU approved');
+      // Si no hay mapa guardado en la DB (usuario nuevo),
+      // aprobamos CPU por defecto para que empiece desde ahí
+      if (getNode("CPU")) {
+        aprobar("CPU", 0);
+      }
+      actualizar();
+      actualizarNiveles();
+      network.fit();
     }
     // Solo queremos poblar el grafo cuando el usuario cambia de carrera
     // o cuando el usuario se loguea y cambia el padron
@@ -645,29 +647,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     });
     return saveUserGraph(user, materias, checkboxes, optativas, aplazos);
   }, [nodes, user, saveUserGraph, optativas, aplazos]);
-
-  const scheduleSave = React.useCallback(() => {
-    console.log('[scheduleSave] Attempting to schedule save...', {
-      logged,
-      beta: user.carrera.beta,
-    });
-    if (!logged || user.carrera.beta) return;
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    console.log('[scheduleSave] Save scheduled for 800ms from now');
-    saveTimeoutRef.current = setTimeout(() => {
-      saveGraph().catch(console.error);
-    }, 800);
-  }, [logged, user.carrera.beta, saveGraph]);
-
-  React.useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Hay distintos creditos para almacenar (los de las obligatorias, los de las electivas, etc)
   // Guardamos un array y lo vamos llenando de objetos que contienen:
