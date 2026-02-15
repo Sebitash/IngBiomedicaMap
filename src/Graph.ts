@@ -187,17 +187,22 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // Cuando cambia la carrera, poblamos el nuevo grafo con lo que hay en la DB
   // (o, simplemente aprobamos el CBC si el usuario no tenia nada)
   React.useEffect(() => {
+    console.log('[Graph] useEffect triggered - loading user data');
     if (!network || graph.key !== network.key) return;
 
     // Nos fijamos que el usuario tenga un mapa guardado en la db
     const map = user.maps?.find(
       (map) => map.carreraid === user.carrera.id,
     )?.map;
+    
+    console.log('[Graph] Map found:', map);
+    
     if (map) {
       const toUpdate: NodeType[] = [];
 
       // Aprobamos/planeamos todo lo que tenia el usuario en la db
       map.materias.forEach((m) => {
+        console.log('[Graph] Processing materia:', m);
         let node = getNode(m.id);
         if (!node) return;
         if (typeof m.nota === "number") {
@@ -209,6 +214,8 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
         }
         toUpdate.push(node);
       });
+
+      console.log('[Graph] Updating nodes:', toUpdate.length);
 
       // Actualizamos su metadata
       map.checkboxes?.forEach((c) => toggleCheckbox(c, true));
@@ -233,21 +240,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
       showRelevantes();
       network.fit();
     } else {
-      // Si no tengo mapa en la DB (porque me desloguee, o porque soy un usuario nuevo en esta carrera),
-      //   reseteo absolutamente todo y solamente apruebo el CBC
-      user.carrera.creditos.checkbox?.forEach((ch) => (ch.check = false));
-      optativasDispatch({ action: "override", value: [] });
-      setAplazos(0);
-      nodes.update(
-        getters
-          .ALL()
-          .map((n) => getNode(n.id).desaprobar().cursando(undefined)),
-      );
-      if (getNode("CPU")) aprobar("CPU", 0);
-      else aprobar("CBC", 0);
-      actualizar();
-      actualizarNiveles();
-      network.fit();
+      console.log('[Graph] No map found in DB, keeping current state');
+      // Si no hay mapa guardado en la DB, mantener el estado actual
+      // (no resetear para no borrar materias aprobadas antes de guardar)
     }
     // Solo queremos poblar el grafo cuando el usuario cambia de carrera
     // o cuando el usuario se loguea y cambia el padron
@@ -411,25 +406,24 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // Interfaz de botones de la UI con los nodos
   ///
   const aprobar = (id: string, nota: number) => {
+    console.log('[aprobar] Called with:', { id, nota });
     if (nota < -1) return;
     const node = getNode(id);
     nodes.update([node.aprobar(nota) ?? node]);
     actualizar();
-    scheduleSave();
   };
 
   const desaprobar = (id: string) => {
+    console.log('[desaprobar] Called with:', { id });
     const node = getNode(id);
     nodes.update([node.desaprobar()]);
     actualizar();
-    scheduleSave();
   };
 
   const cursando = (id: string, cuatrimestre: number) => {
     nodes.update(getNode(id).cursando(cuatrimestre));
     actualizar();
     actualizarNiveles();
-    scheduleSave();
   };
 
   const restartGraphCuatris = () => {
@@ -438,7 +432,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     );
     actualizar();
     actualizarNiveles();
-    scheduleSave();
   };
 
   const toggleCheckbox = (c: string, forceTrue = false) => {
@@ -456,7 +449,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
 
     checkbox.check = forceTrue ? true : !value;
     actualizar();
-    scheduleSave();
   };
 
   // Clickear en la materia "CBC" te muestra las materias adentro del CBC
@@ -636,6 +628,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // - optativas: los creditos que no estan en el plan que se agregaron
   // - aplazos: la cantidad de aplazos seteado
   const saveGraph = React.useCallback(async () => {
+    console.log('[saveGraph] Saving graph...');
     const materias = nodes.get({
       filter: () => true,
       fields: ["id", "nota", "cuatrimestre"],
@@ -643,14 +636,26 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     const checkboxes = user.carrera.creditos.checkbox
       ?.filter((c) => c.check === true)
       .map((c) => c.nombre);
+    console.log('[saveGraph] Calling saveUserGraph with:', {
+      padron: user.padron,
+      materiasCount: materias.length,
+      checkboxes,
+      optativas,
+      aplazos,
+    });
     return saveUserGraph(user, materias, checkboxes, optativas, aplazos);
   }, [nodes, user, saveUserGraph, optativas, aplazos]);
 
   const scheduleSave = React.useCallback(() => {
+    console.log('[scheduleSave] Attempting to schedule save...', {
+      logged,
+      beta: user.carrera.beta,
+    });
     if (!logged || user.carrera.beta) return;
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
+    console.log('[scheduleSave] Save scheduled for 800ms from now');
     saveTimeoutRef.current = setTimeout(() => {
       saveGraph().catch(console.error);
     }, 800);
@@ -663,10 +668,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
       }
     };
   }, []);
-
-  React.useEffect(() => {
-    scheduleSave();
-  }, [optativas, aplazos, scheduleSave]);
 
   // Hay distintos creditos para almacenar (los de las obligatorias, los de las electivas, etc)
   // Guardamos un array y lo vamos llenando de objetos que contienen:

@@ -51,6 +51,7 @@ const Login = (): UserType.Context => {
   // y lo guarda en el estado `user`
   // Usamos de carrera la ultima que registro el usuario
   const login = async (padron: string) => {
+    console.log('[login] Attempting login with padron:', padron);
     setLoading(true);
     if (!padron) {
       setLoading(false);
@@ -58,8 +59,10 @@ const Login = (): UserType.Context => {
     }
 
     const allLogins = await getUserLogins(padron);
+    console.log('[login] getUserLogins returned:', allLogins);
 
     if (!allLogins || !allLogins.length) {
+      console.log('[login] No logins found, aborting');
       setLoading(false);
       return false;
     }
@@ -83,7 +86,10 @@ const Login = (): UserType.Context => {
       }
     }
 
+    console.log('[login] Selected carrera:', carrera.id);
+
     const maps = await getGraphs(padron);
+    console.log('[login] getGraphs returned:', maps);
 
     setUser({
       padron,
@@ -93,6 +99,7 @@ const Login = (): UserType.Context => {
       allLogins,
       maps,
     });
+    console.log('[login] User set successfully');
     window.localStorage.setItem("padron", padron);
     setLoading(false);
     setLoggingIn(false);
@@ -150,6 +157,13 @@ const Login = (): UserType.Context => {
     optativas,
     aplazos,
   ) => {
+    console.log('[saveUserGraph] Building map...', {
+      materiasCount: materias.length,
+      checkboxes,
+      optativas,
+      aplazos,
+    });
+    
     const map: UserType.CarreraMap = {
       materias,
     };
@@ -162,7 +176,10 @@ const Login = (): UserType.Context => {
     if (aplazos) {
       map.aplazos = aplazos;
     }
+    
+    console.log('[saveUserGraph] Calling postGraph...');
     await postGraph(user, map);
+    console.log('[saveUserGraph] postGraph completed');
 
     const addToMaps = () => {
       if (!user.maps) return [];

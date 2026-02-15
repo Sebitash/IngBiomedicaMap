@@ -5,6 +5,14 @@ import { createClient } from "@supabase/supabase-js";
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const HAS_SUPABASE = !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
+
+console.log('[dbutils] Supabase config:', {
+  hasUrl: !!SUPABASE_URL,
+  hasKey: !!SUPABASE_ANON_KEY,
+  HAS_SUPABASE,
+  url: SUPABASE_URL,
+});
+
 const supabase = HAS_SUPABASE
   ? createClient(SUPABASE_URL as string, SUPABASE_ANON_KEY as string)
   : null;
@@ -144,6 +152,8 @@ const buildMapFromState = (state: LocalUserState): UserType.CarreraMap => {
 };
 
 export const getUserLogins = async (padron: string) => {
+  console.log('[getUserLogins] Checking for user:', padron);
+  
   if (C.OFFLINE) {
     const local = getLocalUserData(padron);
     return local?.state
@@ -164,8 +174,11 @@ export const getUserLogins = async (padron: string) => {
       .eq("padron", padron)
       .limit(1);
 
-    if (error || !data || data.length === 0) return null;
+    console.log('[getUserLogins] Supabase query result:', { data, error });
 
+    // Si el usuario existe (tiene datos guardados), devolvemos su carrera
+    // Si NO existe, también devolvemos la carrera pero sin crear la fila todavía
+    // (la fila se creará cuando el usuario presione "Guardar" por primera vez)
     return [
       {
         carreraid: "biomedica-2022",
@@ -238,7 +251,12 @@ export const postGraph = async (
 
   if (HAS_SUPABASE && supabase) {
     const state = buildStateFromMap(map);
-    await supabase.from("user_state").upsert(
+    console.log('[postGraph] Saving to Supabase:', {
+      padron: user.padron,
+      state,
+    });
+    
+    const { data, error } = await supabase.from("user_state").upsert(
       {
         padron: user.padron,
         aprobadas: state.aprobadas,
@@ -250,6 +268,12 @@ export const postGraph = async (
       },
       { onConflict: "padron" },
     );
+    
+    if (error) {
+      console.error('[postGraph] Error saving to Supabase:', error);
+    } else {
+      console.log('[postGraph] Successfully saved to Supabase:', data);
+    }
     return;
   }
 
@@ -258,6 +282,8 @@ export const postGraph = async (
 
 // Consigue todos los mapas asociados a un padron, de todas las carreras
 export const getGraphs = async (padron: string) => {
+  console.log('[getGraphs] Loading graphs for:', padron);
+  
   if (C.OFFLINE) {
     const local = getLocalUserData(padron);
     if (!local?.state) return [];
@@ -277,6 +303,8 @@ export const getGraphs = async (padron: string) => {
       )
       .eq("padron", padron)
       .limit(1);
+    
+    console.log('[getGraphs] Supabase query result:', { data, error });
 
     if (error || !data || data.length === 0) return [];
 
