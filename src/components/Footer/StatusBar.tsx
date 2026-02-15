@@ -40,7 +40,7 @@ const StatusBar = () => {
   );
 
   const materiasTotal = React.useMemo(
-    () => obligatoriasTotal + checkboxMateriasTotal,
+    () => obligatoriasTotal + checkboxMateriasTotal + 11, //momentaneo, hasta que se agreguen las electivas como checkbox
     [checkboxMateriasTotal, obligatoriasTotal],
   );
 
