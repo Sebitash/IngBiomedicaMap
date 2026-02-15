@@ -43,6 +43,7 @@ export const CARRERAS: UserType.Carrera[] = [
           nombrecorto: "Suficiencia",
           color: "aprobadas",
           bg: COLORS.aprobadas[50],
+          cuentaMateria: true,
         },
         {
           nombre: "Trabajo profesional",

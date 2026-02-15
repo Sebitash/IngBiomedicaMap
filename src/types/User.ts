@@ -17,6 +17,7 @@ export namespace UserType {
     bg: string;
     color: string;
     check?: boolean;
+    cuentaMateria?: boolean;
   }
 
   interface OrientacionCredito {

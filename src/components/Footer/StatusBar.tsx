@@ -21,21 +21,15 @@ const NON_MATERIA_CATEGORIAS = new Set([
 ]);
 
 const StatusBar = () => {
-  const { getters, toggleCheckbox } = React.useContext(GraphContext);
+  const { getters, toggleCheckbox, creditos } = React.useContext(GraphContext);
   const { user } = React.useContext(UserContext);
 
-  const materias = React.useMemo(
-    () =>
-      getters
-        .ALL()
-        .filter((n) => !NON_MATERIA_CATEGORIAS.has(n.categoria)),
-    [getters],
-  );
-
-  const materiasAprobadas = React.useMemo(
-    () => materias.filter((n) => n.aprobada && n.nota >= 0).length,
-    [materias],
-  );
+  const checkboxList = user.carrera.creditos.checkbox ?? [];
+  const checkboxMaterias = checkboxList.filter((c) => c.cuentaMateria);
+  const checkboxMateriasTotal = checkboxMaterias.length;
+  const checkboxMateriasAprobadas = checkboxMaterias.filter(
+    (c) => c.check,
+  ).length;
 
   const obligatoriasTotal = React.useMemo(
     () => getters.CategoriaOnly("Materias Obligatorias").length,
@@ -47,10 +41,44 @@ const StatusBar = () => {
     [getters],
   );
 
+  const materiasAprobadas = React.useMemo(
+    () => obligatoriasAprobadas + checkboxMateriasAprobadas,
+    [checkboxMateriasAprobadas, obligatoriasAprobadas],
+  );
+
+  const materiasTotal = React.useMemo(
+    () => obligatoriasTotal + checkboxMateriasTotal,
+    [checkboxMateriasTotal, obligatoriasTotal],
+  );
+
+  const materiasPercent = React.useMemo(() => {
+    if (!materiasTotal) return 0;
+    return Math.round((materiasAprobadas / materiasTotal) * 100);
+  }, [materiasAprobadas, materiasTotal]);
+
   const obligatoriasPercent = React.useMemo(() => {
     if (!obligatoriasTotal) return 0;
     return Math.round((obligatoriasAprobadas / obligatoriasTotal) * 100);
   }, [obligatoriasAprobadas, obligatoriasTotal]);
+
+  const electivasCredito = React.useMemo(
+    () => creditos.find((c) => c.nombre === "Electivas"),
+    [creditos],
+  );
+
+  const electivasTotalCreditos = React.useMemo(() => {
+    const necesarios = electivasCredito?.creditosNecesarios ?? 0;
+    return necesarios > 0 ? necesarios : 100;
+  }, [electivasCredito]);
+
+  const electivasPercent = React.useMemo(() => {
+    return Math.min(
+      100,
+      Math.round(
+        ((electivasCredito?.creditos || 0) / electivasTotalCreditos) * 100,
+      ),
+    );
+  }, [electivasCredito, electivasTotalCreditos]);
 
   const promedio = React.useMemo(
     () => promediar(getters.MateriasAprobadasSinCBC()),
@@ -71,16 +99,15 @@ const StatusBar = () => {
       <Flex alignItems="center" gap={4} flex="1" minW="32ch">
         <Box minW="16ch">
           <Stat color="white" size="sm">
-            <StatLabel>Materias aprobadas</StatLabel>
+            <StatLabel>Total carrera</StatLabel>
             <StatNumber>
-              {materiasAprobadas} de {materias.length}
+              {materiasAprobadas} de {materiasTotal} {" "}
+              <Badge colorScheme="green" variant="solid">
+                {materiasPercent}%
+              </Badge>
             </StatNumber>
           </Stat>
         </Box>
-
-        <Badge colorScheme="green" variant="solid">
-          CPU
-        </Badge>
 
         <Box flex="1" minW="24ch">
           <Stat color="white" size="sm">
@@ -105,6 +132,28 @@ const StatusBar = () => {
       </Flex>
 
       <Flex alignItems="center" gap={4} ml="auto" flexWrap="wrap">
+        <Box flex="1" minW="24ch">
+          <Stat color="white" size="sm">
+            <StatLabel>Electivas</StatLabel>
+            <StatNumber>
+              {electivasCredito?.creditos || 0} de {" "}
+              {electivasTotalCreditos} {" "}
+              <Badge colorScheme="green" variant="solid">
+                {electivasPercent}%
+              </Badge>
+            </StatNumber>
+          </Stat>
+          <Progress
+            mt={1}
+            height={3}
+            borderRadius={3}
+            max={100}
+            value={electivasPercent}
+            colorScheme="electivas"
+            sx={{ "& > div:first-of-type": { transitionProperty: "width" } }}
+          />
+        </Box>
+
         <Flex alignItems="center" gap={4} flexWrap="wrap">
           {checkboxes.map((c) => (
             <LightMode key={c.nombre}>

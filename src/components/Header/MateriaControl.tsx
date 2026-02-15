@@ -1,14 +1,7 @@
-import {
-  ArrowBackIcon,
-  ArrowForwardIcon,
-  CheckIcon,
-  CloseIcon,
-  Icon,
-} from "@chakra-ui/icons";
+import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Button,
   Flex,
-  HStack,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -17,9 +10,7 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import React from "react";
-import { FaUndo } from "react-icons/fa";
 import { GraphContext } from "../../MapContext";
-import { getCurrentCuatri } from "../../utils";
 
 const ControlProps = {
   height: "fit-content",
@@ -58,9 +49,9 @@ const NumberStepperProps = {
   fontSize: "small",
 };
 
-// Botonera para cambiar la nota y el cuatri de la materia seleccionada
+// Botonera para cambiar la nota y estado de la materia seleccionada
 const MateriaControl = () => {
-  const { getNode, aprobar, displayedNode, desaprobar, cursando } =
+  const { getNode, aprobar, displayedNode, desaprobar } =
     React.useContext(GraphContext);
 
   const node = React.useMemo(
@@ -141,16 +132,6 @@ const MateriaControl = () => {
           </Button>
         </Tooltip>
 
-        <Tooltip {...TooltipProps} label="En Final">
-          <Button
-            {...ButtonProps}
-            color="orange.400"
-            onClick={() => aprobar(displayedNode, -2)}
-          >
-            <strong>F</strong>
-          </Button>
-        </Tooltip>
-
         <Tooltip {...TooltipProps} label="Regularizar">
           <Button
             {...ButtonProps}
@@ -161,87 +142,6 @@ const MateriaControl = () => {
           </Button>
         </Tooltip>
       </Flex>
-
-      {node && node.categoria !== "CBC" && node.categoria !== "*CBC" && (
-        <>
-          {!node.cuatrimestre ? (
-            <Tooltip {...TooltipProps} label="Cursando Actualmente">
-              <Button
-                {...ButtonProps}
-                {...ControlProps}
-                p={0}
-                color="cursando.400"
-                onClick={() => cursando(displayedNode, getCurrentCuatri())}
-              >
-                <strong>C</strong>
-              </Button>
-            </Tooltip>
-          ) : (
-            <HStack {...ControlProps} p={0}>
-              <Tooltip {...TooltipProps} label="Cuatrimestre">
-                <NumberInput
-                  borderColor="transparent"
-                  onChange={(_, cuatri) => {
-                    cursando(displayedNode, cuatri);
-                  }}
-                  value={node?.cuatrimestre}
-                  format={(cuatriStr) => {
-                    const cuatri = parseFloat(cuatriStr.toString());
-                    if (cuatri % 1 === 0) return `${cuatri}C1`;
-                    return `${Math.floor(cuatri)}C2`;
-                  }}
-                  parse={(cuatristr) => {
-                    const [y, c] = cuatristr.split("C");
-                    if (c === "1") return y;
-                    return y + 0.5;
-                  }}
-                  step={0.5}
-                  precision={1}
-                  onFocus={(ev) => {
-                    ev.target.blur();
-                  }}
-                  display="flex"
-                >
-                  <NumberDecrementStepper
-                    {...NumberStepperProps}
-                    mx={2}
-                    color="white"
-                    _hover={{ color: "habilitadas.500" }}
-                    children={<ArrowBackIcon boxSize={4} />}
-                  />
-                  <NumberInputField
-                    textAlign="center"
-                    width="8ch"
-                    p={0}
-                    {...NumberInputProps}
-                  />
-                  <NumberIncrementStepper
-                    {...NumberStepperProps}
-                    mx={2}
-                    color="white"
-                    _hover={{ color: "habilitadas.500" }}
-                    children={<ArrowForwardIcon boxSize={4} />}
-                  />
-                </NumberInput>
-              </Tooltip>
-
-              <Tooltip {...TooltipProps} label="Limpiar">
-                <Button
-                  {...ButtonProps}
-                  _hover={{
-                    color: "habilitadas.500",
-                  }}
-                  borderLeft="2px solid white"
-                  color="white"
-                  onClick={() => cursando(displayedNode, undefined)}
-                >
-                  <Icon boxSize={3.5} as={FaUndo} />
-                </Button>
-              </Tooltip>
-            </HStack>
-          )}
-        </>
-      )}
     </Flex>
   ) : (
     <></>
