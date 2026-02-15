@@ -1,29 +1,23 @@
--- Supabase schema for FIUBA Map
+-- Supabase schema for FIUBA Map (solo Biomedica)
 
-create table if not exists user_logins (
+drop table if exists user_checkboxes;
+drop table if exists user_materias;
+drop table if exists user_maps;
+drop table if exists user_logins;
+
+create table if not exists user_state (
   padron text not null,
-  carreraid text not null,
-  orientacionid text,
-  findecarreraid text,
+  aprobadas jsonb not null default '[]'::jsonb,
+  regularizadas text[] not null default '{}',
+  no_aprobadas text[] not null default '{}',
+  ingles boolean not null default false,
+  trabajo_profesional boolean not null default false,
   updated_at timestamptz not null default now(),
-  primary key (padron, carreraid)
+  primary key (padron)
 );
 
-create table if not exists user_maps (
-  padron text not null,
-  carreraid text not null,
-  map jsonb not null,
-  updated_at timestamptz not null default now(),
-  primary key (padron, carreraid)
-);
+alter table user_state enable row level security;
 
-alter table user_logins enable row level security;
-alter table user_maps enable row level security;
-
-create policy "public read/write user_logins"
-  on user_logins for all
-  using (true) with check (true);
-
-create policy "public read/write user_maps"
-  on user_maps for all
+create policy "public read/write user_state"
+  on user_state for all
   using (true) with check (true);

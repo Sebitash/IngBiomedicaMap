@@ -360,40 +360,6 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     network.body.emitter.emit("_dataChanged");
   };
 
-  // Guarda el "mapa" en la base de datos, con toda su metadata:
-  // - materias: solo nos importan las materias aprobadas o "planeadas" (con cuatrimestre)
-  // - checkboxes: los booleanos tipo "aprobe ingles"
-  // - optativas: los creditos que no estan en el plan que se agregaron
-  // - aplazos: la cantidad de aplazos seteado
-  const saveGraph = async () => {
-    const materias = nodes.get({
-      filter: () => true,
-      fields: ["id", "nota", "cuatrimestre"],
-    }) as NodeType[];
-    const checkboxes = user.carrera.creditos.checkbox
-      ?.filter((c) => c.check === true)
-      .map((c) => c.nombre);
-    return saveUserGraph(user, materias, checkboxes, optativas, aplazos);
-  };
-
-  const scheduleSave = React.useCallback(() => {
-    if (!logged || user.carrera.beta) return;
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    saveTimeoutRef.current = setTimeout(() => {
-      saveGraph().catch(console.error);
-    }, 800);
-  }, [logged, user.carrera.beta, saveGraph]);
-
-  React.useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
-
   ///
   // Interfaz de la UI con los cambios del usuario (carrera, orientacion, findecarrera)
   // Cada vez que cambia del usuario, se guarda en la DB para que quede guardado\
@@ -663,6 +629,40 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     },
     [],
   );
+
+  // Guarda el "mapa" en la base de datos, con toda su metadata:
+  // - materias: solo nos importan las materias aprobadas o "planeadas" (con cuatrimestre)
+  // - checkboxes: los booleanos tipo "aprobe ingles"
+  // - optativas: los creditos que no estan en el plan que se agregaron
+  // - aplazos: la cantidad de aplazos seteado
+  const saveGraph = React.useCallback(async () => {
+    const materias = nodes.get({
+      filter: () => true,
+      fields: ["id", "nota", "cuatrimestre"],
+    }) as NodeType[];
+    const checkboxes = user.carrera.creditos.checkbox
+      ?.filter((c) => c.check === true)
+      .map((c) => c.nombre);
+    return saveUserGraph(user, materias, checkboxes, optativas, aplazos);
+  }, [nodes, user, saveUserGraph, optativas, aplazos]);
+
+  const scheduleSave = React.useCallback(() => {
+    if (!logged || user.carrera.beta) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      saveGraph().catch(console.error);
+    }, 800);
+  }, [logged, user.carrera.beta, saveGraph]);
+
+  React.useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   React.useEffect(() => {
     scheduleSave();
