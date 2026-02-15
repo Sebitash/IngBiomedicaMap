@@ -21,6 +21,10 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // Guardamos cuantos aplazos se tienen para computar en el promedio
   const [aplazos, setAplazos] = React.useState(0);
 
+  const saveTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
   // La network es nuestra interfaz con vis.js
   // Nos da acceso a los nodos, las aristas y varias funciones
   // https://visjs.github.io/vis-network/docs/network/
@@ -196,15 +200,14 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
       map.materias.forEach((m) => {
         let node = getNode(m.id);
         if (!node) return;
-        if (m.nota >= -1 || m.cuatrimestre) {
-          if (m.nota >= -1) {
-            node = node.aprobar(m.nota) ?? node;
-          }
-          if (m.cuatrimestre) {
-            node = node.cursando(m.cuatrimestre);
-          }
-          toUpdate.push(node);
+        if (typeof m.nota === "number") {
+          node = node.aprobar(m.nota) ?? node;
+          if (m.nota < -2) node = node.desaprobar();
         }
+        if (m.cuatrimestre) {
+          node = node.cursando(m.cuatrimestre);
+        }
+        toUpdate.push(node);
       });
 
       // Actualizamos su metadata
@@ -364,14 +367,32 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   // - aplazos: la cantidad de aplazos seteado
   const saveGraph = async () => {
     const materias = nodes.get({
-      filter: (n) => n.aprobada || n.nota === -1 || n.cuatrimestre,
+      filter: () => true,
       fields: ["id", "nota", "cuatrimestre"],
-    });
+    }) as NodeType[];
     const checkboxes = user.carrera.creditos.checkbox
       ?.filter((c) => c.check === true)
       .map((c) => c.nombre);
     return saveUserGraph(user, materias, checkboxes, optativas, aplazos);
   };
+
+  const scheduleSave = React.useCallback(() => {
+    if (!logged || user.carrera.beta) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      saveGraph().catch(console.error);
+    }, 800);
+  }, [logged, user.carrera.beta, saveGraph]);
+
+  React.useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   ///
   // Interfaz de la UI con los cambios del usuario (carrera, orientacion, findecarrera)
@@ -428,18 +449,21 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     const node = getNode(id);
     nodes.update([node.aprobar(nota) ?? node]);
     actualizar();
+    scheduleSave();
   };
 
   const desaprobar = (id: string) => {
     const node = getNode(id);
     nodes.update([node.desaprobar()]);
     actualizar();
+    scheduleSave();
   };
 
   const cursando = (id: string, cuatrimestre: number) => {
     nodes.update(getNode(id).cursando(cuatrimestre));
     actualizar();
     actualizarNiveles();
+    scheduleSave();
   };
 
   const restartGraphCuatris = () => {
@@ -448,6 +472,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     );
     actualizar();
     actualizarNiveles();
+    scheduleSave();
   };
 
   const toggleCheckbox = (c: string, forceTrue = false) => {
@@ -465,6 +490,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
 
     checkbox.check = forceTrue ? true : !value;
     actualizar();
+    scheduleSave();
   };
 
   // Clickear en la materia "CBC" te muestra las materias adentro del CBC
@@ -637,6 +663,10 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     },
     [],
   );
+
+  React.useEffect(() => {
+    scheduleSave();
+  }, [optativas, aplazos, scheduleSave]);
 
   // Hay distintos creditos para almacenar (los de las obligatorias, los de las electivas, etc)
   // Guardamos un array y lo vamos llenando de objetos que contienen:

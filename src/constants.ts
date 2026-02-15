@@ -135,7 +135,7 @@ export const GRUPOS = {
   ObligatoriasHabilitadas: { color: COLORS.enfinal[400] },
   Cursando: { color: COLORS.cursando[400] },
   "En Final": { color: COLORS.enfinal[400] },
-  NoHabilitadas: { color: COLORS.deshabilitada[400] },
+  NoHabilitadas: { color: COLORS.findecarrera[400] },
   "Materias Obligatorias": { color: COLORS.obligatorias[400] },
   "Materias Electivas": { color: COLORS.electivas[400] },
   "Fin de Carrera": {

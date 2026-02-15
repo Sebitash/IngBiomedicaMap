@@ -83,11 +83,12 @@ class Node implements NodeType {
     // - Fin de Carrera (Obligatorio): Tesis/TPP de las carreras que no te dejan elegir
     this.group = this.categoria;
 
+    // Nota = -3 => sin estado
     // Nota = -2 => en final
     // Nota = -1 => regularizada
     // Nota = 0 => aprobada por equivalencia
     // Nota = 4-10 => aprobada con nota
-    this.nota = -2;
+    this.nota = -3;
 
     // Solamente como un shortcut de nota >= 0
     this.aprobada = false;
@@ -120,7 +121,7 @@ class Node implements NodeType {
 
   desaprobar() {
     this.aprobada = false;
-    this.nota = -2;
+    this.nota = -3;
     return this;
   }
 
@@ -202,33 +203,34 @@ class Node implements NodeType {
     this.group = grupoDefault;
 
     let labelDefault = breakWords(this.materia);
-    if (showLabels && this.id !== "CBC" && this.id !== "CPU") {
-      if (this.aprobada && this.nota > 0)
+    if (this.id !== "CBC" && this.id !== "CPU") {
+      if (this.nota > 0) {
         labelDefault += "\n[" + this.nota + "]";
-      else if (this.aprobada && this.nota === 0)
-        labelDefault += "\n[Equivalencia]";
-      else if (this.nota === -2) labelDefault += "\n[En Final]";
-      else if (this.nota === -1) labelDefault += "\n[Regularizada]";
-      else if (this.cuatrimestre === getCurrentCuatri())
-        labelDefault += "\n[Cursando]";
+      } else if (showLabels) {
+        if (this.aprobada && this.nota === 0)
+          labelDefault += "\n[Equivalencia]";
+        else if (this.nota === -2) labelDefault += "\n[En Final]";
+        else if (this.nota === -1) labelDefault += "\n[Regularizada]";
+        else if (this.cuatrimestre === getCurrentCuatri())
+          labelDefault += "\n[Cursando]";
+      }
     }
     this.label = labelDefault;
 
     // El CBC (y sus materias dentro) usa sus propios colores
     if (this.categoria === "*CBC" || this.categoria === "*CPU") {
-      if (this.group === "Habilitadas") this.color = COLORS.aprobadas[100];
       if (this.group === "Aprobadas") this.color = COLORS.aprobadas[400];
+      else if (this.group === "Habilitadas") this.color = COLORS.enfinal[400];
+      else this.color = COLORS.findecarrera[400];
     }
 
     if (this.categoria === "CBC" || this.categoria === "CPU") {
       const materiasBase = getters.MateriasAprobadasCBC();
       const promedioBase = promediar(materiasBase);
       if (showLabels && promedioBase) this.label += "\n[" + promedioBase + "]";
-      if (this.isHabilitada(ctx)) {
-        this.color = COLORS.aprobadas[400];
-      } else {
-        this.color = COLORS.aprobadas[100];
-      }
+      if (this.group === "Aprobadas") this.color = COLORS.aprobadas[400];
+      else if (this.isHabilitada(ctx)) this.color = COLORS.enfinal[400];
+      else this.color = COLORS.findecarrera[400];
     }
 
     if (this.categoria === "Fin de Carrera") {

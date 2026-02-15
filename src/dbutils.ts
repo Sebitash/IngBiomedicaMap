@@ -1,6 +1,5 @@
 import * as C from "./constants";
 import { UserType } from "./types/User";
-import { GoogleSheetAPI } from "./types/externalAPI";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -10,9 +9,16 @@ const supabase = HAS_SUPABASE
   ? createClient(SUPABASE_URL as string, SUPABASE_ANON_KEY as string)
   : null;
 
+type LocalUserState = {
+  aprobadas: { id: string; nota: number }[];
+  regularizadas: string[];
+  no_aprobadas: string[];
+  ingles: boolean;
+  trabajo_profesional: boolean;
+};
+
 type LocalUser = {
-  allLogins: UserType.CarreraInfo[];
-  maps: UserType.Map[];
+  state: LocalUserState;
 };
 
 type LocalDb = {
@@ -39,12 +45,20 @@ const writeLocalDb = (db: LocalDb) => {
   window.localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
 };
 
+const DEFAULT_LOCAL_STATE: LocalUserState = {
+  aprobadas: [],
+  regularizadas: [],
+  no_aprobadas: [],
+  ingles: false,
+  trabajo_profesional: false,
+};
+
 const updateLocalUser = (
   padron: string,
   updater: (current: LocalUser) => LocalUser,
 ) => {
   const db = readLocalDb();
-  const current = db.users[padron] || { allLogins: [], maps: [] };
+  const current = db.users[padron] || { state: { ...DEFAULT_LOCAL_STATE } };
   db.users[padron] = updater(current);
   writeLocalDb(db);
 };
@@ -54,62 +68,114 @@ export const getLocalUserData = (padron: string) => {
   return db.users[padron] || null;
 };
 
+const buildStateFromMap = (
+  map: UserType.CarreraMap,
+): LocalUserState => {
+  const aprobadas: { id: string; nota: number }[] = [];
+  const regularizadas: string[] = [];
+  const no_aprobadas: string[] = [];
+  const seen = new Set<string>();
+
+  map.materias.forEach((m) => {
+    if (!m?.id) return;
+    if (m.nota >= 0) {
+      aprobadas.push({ id: m.id, nota: m.nota });
+      seen.add(m.id);
+    }
+  });
+
+  map.materias.forEach((m) => {
+    if (!m?.id || seen.has(m.id)) return;
+    if (m.nota === -1) {
+      regularizadas.push(m.id);
+      seen.add(m.id);
+    }
+  });
+
+  map.materias.forEach((m) => {
+    if (!m?.id || seen.has(m.id)) return;
+    no_aprobadas.push(m.id);
+  });
+
+  const checkboxes = map.checkboxes ?? [];
+  const ingles =
+    checkboxes.includes("Ingles") ||
+    checkboxes.includes("Prueba de suficiencia");
+  const trabajo_profesional = checkboxes.includes("Trabajo profesional");
+
+  return {
+    aprobadas,
+    regularizadas,
+    no_aprobadas,
+    ingles,
+    trabajo_profesional,
+  };
+};
+
+const buildMapFromState = (state: LocalUserState): UserType.CarreraMap => {
+  const materias: UserType.CarreraMap["materias"] = [];
+  const seen = new Set<string>();
+
+  state.aprobadas.forEach((m) => {
+    materias.push({ id: m.id, nota: m.nota } as UserType.CarreraMap["materias"][number]);
+    seen.add(m.id);
+  });
+
+  state.regularizadas.forEach((id) => {
+    if (seen.has(id)) return;
+    materias.push({ id, nota: -1 } as UserType.CarreraMap["materias"][number]);
+    seen.add(id);
+  });
+
+  state.no_aprobadas.forEach((id) => {
+    if (seen.has(id)) return;
+    materias.push({ id, nota: -3 } as UserType.CarreraMap["materias"][number]);
+    seen.add(id);
+  });
+
+  const checkboxes: string[] = [];
+  if (state.ingles) checkboxes.push("Prueba de suficiencia");
+  if (state.trabajo_profesional) checkboxes.push("Trabajo profesional");
+
+  return {
+    materias,
+    checkboxes: checkboxes.length ? checkboxes : undefined,
+  };
+};
+
 export const getUserLogins = async (padron: string) => {
   if (C.OFFLINE) {
     const local = getLocalUserData(padron);
-    return local?.allLogins || null;
+    return local?.state
+      ? [
+          {
+            carreraid: "biomedica-2022",
+            orientacionid: undefined,
+            findecarreraid: undefined,
+          },
+        ]
+      : null;
   }
 
   if (HAS_SUPABASE && supabase) {
     const { data, error } = await supabase
-      .from("user_logins")
-      .select("carreraid, orientacionid, findecarreraid")
-      .eq("padron", padron);
+      .from("user_state")
+      .select("padron")
+      .eq("padron", padron)
+      .limit(1);
 
     if (error || !data || data.length === 0) return null;
 
-    return data.map((row) => ({
-      carreraid: row.carreraid as string,
-      orientacionid: (row.orientacionid as string | null) || undefined,
-      findecarreraid: (row.findecarreraid as string | null) || undefined,
-    }));
+    return [
+      {
+        carreraid: "biomedica-2022",
+        orientacionid: undefined,
+        findecarreraid: undefined,
+      },
+    ];
   }
 
-  const padrones = await fetch(
-    `${C.SPREADSHEET}/${C.SHEETS.user}!B:B?majorDimension=COLUMNS&key=${C.KEY}`,
-  )
-    .then((res) => res.json())
-    .then((res: GoogleSheetAPI.UserValueRange) =>
-      !res.error ? res.values[0] : null,
-    );
-
-  if (!padrones) return null;
-
-  const indexes: number[] = [];
-  let j = -1;
-  while ((j = padrones.indexOf(padron, j + 1)) !== -1) {
-    indexes.push(j);
-  }
-
-  if (!indexes.length) return null;
-
-  const ranges = indexes.map(
-    (index) => `&ranges=${C.SHEETS.user}!${index + 1}:${index + 1}`,
-  );
-
-  const data = await fetch(
-    `${C.SPREADSHEET}:batchGet?key=${C.KEY}${ranges.join("")}`,
-  ).then((res) =>
-    res.json().then((res: GoogleSheetAPI.BatchGet) => res.valueRanges),
-  );
-
-  const allLogins: UserType.CarreraInfo[] = data.map((d) => ({
-    carreraid: d.values[0][2],
-    orientacionid: d.values[0][3],
-    findecarreraid: d.values[0][4],
-  }));
-
-  return allLogins;
+  return null;
 };
 
 // Le pega al form de bugs
@@ -136,50 +202,24 @@ export const submitBug = async (user: UserType.Info, bug: string) => {
 // Le pega al form que almacena [padron,carrera,orientacion,findecarrera]
 export const postUser = async (user: UserType.Info) => {
   if (C.OFFLINE) {
-    updateLocalUser(user.padron, (current) => {
-      const newAllLogins = current.allLogins.filter(
-        (l) => l.carreraid !== user.carrera.id,
-      );
-      newAllLogins.push({
-        carreraid: user.carrera.id,
-        orientacionid: user.orientacion?.nombre,
-        findecarreraid: user.finDeCarrera?.id,
-      });
-      return {
-        ...current,
-        allLogins: newAllLogins,
-      };
-    });
+    updateLocalUser(user.padron, (current) => ({
+      ...current,
+      state: current.state || { ...DEFAULT_LOCAL_STATE },
+    }));
     return;
   }
 
   if (HAS_SUPABASE && supabase) {
-    await supabase.from("user_logins").upsert(
+    await supabase.from("user_state").upsert(
       {
         padron: user.padron,
-        carreraid: user.carrera.id,
-        orientacionid: user.orientacion?.nombre || null,
-        findecarreraid: user.finDeCarrera?.id || null,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "padron,carreraid" },
+      { onConflict: "padron" },
     );
     return;
   }
-  const formData = new FormData();
-  const padron = user.padron;
-  const carreraid = user.carrera.id;
-  const orientacionid = user.orientacion?.nombre;
-  const findecarreraid = user.finDeCarrera?.id;
-  formData.append(`${C.USER_FORM_ENTRIES.padron}`, padron);
-  formData.append(`${C.USER_FORM_ENTRIES.carrera}`, carreraid);
-  formData.append(`${C.USER_FORM_ENTRIES.orientacion}`, orientacionid || "");
-  formData.append(`${C.USER_FORM_ENTRIES.finDeCarrera}`, findecarreraid || "");
-  return fetch(`${C.USER_FORM}`, {
-    body: formData,
-    method: "POST",
-    mode: "no-cors",
-  });
+  return;
 };
 
 // Le pega al form que almacena [padron,carrera,map]
@@ -189,94 +229,72 @@ export const postGraph = async (
   map: UserType.CarreraMap,
 ) => {
   if (C.OFFLINE) {
-    updateLocalUser(user.padron, (current) => {
-      const newMaps = current.maps.filter(
-        (l) => l.carreraid !== user.carrera.id,
-      );
-      newMaps.push({
-        carreraid: user.carrera.id,
-        map,
-      });
-      return {
-        ...current,
-        maps: newMaps,
-      };
-    });
+    updateLocalUser(user.padron, (current) => ({
+      ...current,
+      state: buildStateFromMap(map),
+    }));
     return;
   }
 
   if (HAS_SUPABASE && supabase) {
-    await supabase.from("user_maps").upsert(
+    const state = buildStateFromMap(map);
+    await supabase.from("user_state").upsert(
       {
         padron: user.padron,
-        carreraid: user.carrera.id,
-        map,
+        aprobadas: state.aprobadas,
+        regularizadas: state.regularizadas,
+        no_aprobadas: state.no_aprobadas,
+        ingles: state.ingles,
+        trabajo_profesional: state.trabajo_profesional,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "padron,carreraid" },
+      { onConflict: "padron" },
     );
     return;
   }
-  const formData = new FormData();
-  formData.append(`${C.GRAPH_FORM_ENTRIES.padron}`, user.padron);
-  formData.append(`${C.GRAPH_FORM_ENTRIES.carrera}`, user.carrera.id);
-  formData.append(`${C.GRAPH_FORM_ENTRIES.map}`, JSON.stringify(map));
-  return fetch(`${C.GRAPH_FORM}`, {
-    body: formData,
-    method: "POST",
-    mode: "no-cors",
-  });
+
+  return;
 };
 
 // Consigue todos los mapas asociados a un padron, de todas las carreras
 export const getGraphs = async (padron: string) => {
   if (C.OFFLINE) {
     const local = getLocalUserData(padron);
-    return local?.maps || [];
+    if (!local?.state) return [];
+    return [
+      {
+        carreraid: "biomedica-2022",
+        map: buildMapFromState(local.state),
+      },
+    ] as UserType.Map[];
   }
 
   if (HAS_SUPABASE && supabase) {
     const { data, error } = await supabase
-      .from("user_maps")
-      .select("carreraid, map")
-      .eq("padron", padron);
+      .from("user_state")
+      .select(
+        "aprobadas, regularizadas, no_aprobadas, ingles, trabajo_profesional",
+      )
+      .eq("padron", padron)
+      .limit(1);
 
-    if (error || !data) return [];
+    if (error || !data || data.length === 0) return [];
 
-    return data.map((row) => ({
-      carreraid: row.carreraid as string,
-      map:
-        typeof row.map === "string"
-          ? (JSON.parse(row.map) as UserType.CarreraMap)
-          : (row.map as UserType.CarreraMap),
-    })) as UserType.Map[];
-  }
-  const data = await fetch(
-    `${C.SPREADSHEET}/${C.SHEETS.registros}!B:D?majorDimension=COLUMNS&key=${C.KEY}`,
-  )
-    .then((res) => res.json())
-    .then((res: GoogleSheetAPI.RegistrosValueRange) =>
-      !res.error ? res.values : null,
-    );
-  if (!data) return;
+    const state: LocalUserState = {
+      aprobadas: (data[0].aprobadas as { id: string; nota: number }[]) || [],
+      regularizadas: (data[0].regularizadas as string[]) || [],
+      no_aprobadas: (data[0].no_aprobadas as string[]) || [],
+      ingles: !!data[0].ingles,
+      trabajo_profesional: !!data[0].trabajo_profesional,
+    };
 
-  const [padrones, carreras, maps] = data;
-  const indexes: number[] = [];
-  let j = -1;
-  while ((j = padrones.indexOf(padron, j + 1)) !== -1) {
-    indexes.push(j);
+    return [
+      {
+        carreraid: "biomedica-2022",
+        map: buildMapFromState(state),
+      },
+    ] as UserType.Map[];
   }
 
-  const allLogins: { carreraid: string; map: string }[] = [];
-  for (let i = 0; i < indexes.length; i++) {
-    allLogins.push({
-      carreraid: carreras[indexes[i]],
-      map: maps[indexes[i]],
-    });
-  }
-
-  return allLogins.map((l) => ({
-    carreraid: l.carreraid,
-    map: JSON.parse(l.map),
-  })) as UserType.Map[];
+  return [];
 };

@@ -37,6 +37,20 @@ export const CARRERAS: UserType.Carrera[] = [
     creditos: {
       total: 250,
       electivas: 16,
+      checkbox: [
+        {
+          nombre: "Prueba de suficiencia",
+          nombrecorto: "Suficiencia",
+          color: "aprobadas",
+          bg: COLORS.aprobadas[50],
+        },
+        {
+          nombre: "Trabajo profesional",
+          nombrecorto: "TP",
+          color: "findecarrera",
+          bg: COLORS.findecarrera[50],
+        },
+      ],
     },
   },
 ];

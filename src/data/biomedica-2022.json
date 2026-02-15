@@ -52,7 +52,7 @@
     "creditos": 1,
     "categoria": "Materias Obligatorias",
     "level": 2,
-    "correlativas": "IE103-CB03-CB01-CB02"
+    "correlativas": "CPU"
   },
   {
     "id": "IE004",
@@ -60,7 +60,7 @@
     "creditos": 1,
     "categoria": "Materias Obligatorias",
     "level": 2,
-    "correlativasRegularizadas": "CB01"
+    "correlativasRegularizadas": "IE103"
   },
   {
     "id": "CB10",
@@ -140,5 +140,93 @@
     "level": 4,
     "correlativas": "CB05-CB06-CB10",
     "correlativasRegularizadas": "CB09-CB13"
+  },
+  {
+    "id": "CB31",
+    "materia": "Fisica IV",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 5,
+    "correlativas": "CB09-CB13",
+    "correlativasRegularizadas": "CB15"
+  },
+  {
+    "id": "IB001",
+    "materia": "Ciencias morfologicas",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 5,
+    "correlativasRegularizadas": "CB03"
+  },
+  {
+    "id": "IE029",
+    "materia": "Higiene, Seguridad Ambiental y Laboral",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 5,
+    "correlativas": "CB03"
+  },
+  {
+    "id": "IB002",
+    "materia": "Tecnologias de los Productos y Procesos",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 5,
+    "correlativas": "CB13-CB09",
+    "correlativasRegularizadas": "CB03-CB15"
+  },
+  {
+    "id": "IE013",
+    "materia": "Metodos numericos",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 5,
+    "correlativas": "CB05-CB06",
+    "correlativasRegularizadas": "CB09-CB28"
+  },
+  {
+    "id": "IB003",
+    "materia": "Proteccion Radiologica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 6,
+    "correlativas": "CB15",
+    "correlativasRegularizadas": "CB31"
+  },
+  {
+    "id": "IB004",
+    "materia": "Modelos y sistemas",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 6,
+    "correlativas": "CB09-CB28",
+    "correlativasRegularizadas": "IE102-CB30"
+  },
+  {
+    "id": "IE025",
+    "materia": "Analisis y Procesamiento de Senales",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 6,
+    "correlativas": "CB09-CB28",
+    "correlativasRegularizadas": "CB30-IE102-IE013"
+  },
+  {
+    "id": "IB005",
+    "materia": "Medidas",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 6,
+    "correlativas": "CB09-CB13-CB28",
+    "correlativasRegularizadas": "CB15-CB30"
+  },
+  {
+    "id": "IB006",
+    "materia": "Biofisica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 6,
+    "correlativas": "CB03",
+    "correlativasRegularizadas": "IB001"
   }
 ]
