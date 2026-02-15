@@ -237,5 +237,68 @@
     "level": 7,
     "correlativas": "CB06-IE004",
     "correlativasRegularizadas": "IE107-IE011"
+  },
+  {
+    "id": "IB008",
+    "materia": "Procesamiento de Imagenes",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 7,
+    "correlativas": "CB09-CB28-CB30-IE102",
+    "correlativasRegularizadas": "IE013-IE025"
+  },
+  {
+    "id": "IB009",
+    "materia": "Electronica Analogica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 7,
+    "correlativas": "CB30-IE102-IE013-CB15-CB03",
+    "correlativasRegularizadas": "IB002-IE025"
+  },
+  {
+    "id": "IB010",
+    "materia": "Fisiologia",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 7,
+    "correlativas": "IB001",
+    "correlativasRegularizadas": "IB006"
+  },
+  {
+    "id": "IB011",
+    "materia": "Electronica Digital II",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 8,
+    "correlativas": "IE107-IE011",
+    "correlativasRegularizadas": "IB007"
+  },
+  {
+    "id": "IB012",
+    "materia": "Electrotecnia",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 8,
+    "correlativas": "CB15-CB30-IE102",
+    "correlativasRegularizadas": "IB004-IB005"
+  },
+  {
+    "id": "IB013",
+    "materia": "Ingenieria Biomedica I",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 8,
+    "correlativas": "IB006-IE025-IB002",
+    "correlativasRegularizadas": "IB010-IB009"
+  },
+  {
+    "id": "IE026",
+    "materia": "Sensores, acondicionadores de senales y adquisicion de datos",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 8,
+    "correlativas": "IE025-IB002-IE011-CB30-IE107-CB15",
+    "correlativasRegularizadas": "IB005-IB007-IB009"
   }
 ]
