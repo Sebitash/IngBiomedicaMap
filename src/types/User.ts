@@ -39,6 +39,7 @@ export namespace UserType {
     categoria: string;
     level: number;
     correlativas: string | undefined;
+    correlativasRegularizadas: string | undefined;
     requiere: number | undefined;
     requiereCBC: boolean | undefined;
   }

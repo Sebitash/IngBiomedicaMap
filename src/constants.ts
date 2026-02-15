@@ -117,14 +117,25 @@ export const GRUPOS = {
     shape: "hexagon",
     size: 30,
   },
+  CPU: {
+    shape: "hexagon",
+    size: 30,
+  },
   "*CBC": {
     color: COLORS.aprobadas[100],
     shape: "square",
     size: 15,
   },
-  Habilitadas: { color: COLORS.habilitadas[400] },
+  "*CPU": {
+    color: COLORS.aprobadas[100],
+    shape: "square",
+    size: 15,
+  },
+  Habilitadas: { color: COLORS.enfinal[400] },
+  ObligatoriasHabilitadas: { color: COLORS.enfinal[400] },
   Cursando: { color: COLORS.cursando[400] },
   "En Final": { color: COLORS.enfinal[400] },
+  NoHabilitadas: { color: COLORS.deshabilitada[400] },
   "Materias Obligatorias": { color: COLORS.obligatorias[400] },
   "Materias Electivas": { color: COLORS.electivas[400] },
   "Fin de Carrera": {
@@ -198,6 +209,12 @@ export const CREDITOS = {
   CBC: {
     nombrecorto: "CBC",
     nombre: "Ciclo Básico Común",
+    bg: COLORS.aprobadas[50],
+    color: "aprobadas",
+  },
+  CPU: {
+    nombrecorto: "CPU",
+    nombre: "Ciclo Preparatorio Universitario",
     bg: COLORS.aprobadas[50],
     color: "aprobadas",
   },

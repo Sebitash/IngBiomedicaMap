@@ -1,0 +1,144 @@
+[
+  {
+    "id": "CB01",
+    "materia": "Introduccion al Analisis Matematico",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "correlativas": "CPU",
+    "level": 1
+  },
+  {
+    "id": "CB02",
+    "materia": "Ciencia, Tecnologia y Sociedad",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "correlativas": "CPU",
+    "level": 1
+  },
+  {
+    "id": "CB03",
+    "materia": "Quimica General",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "correlativas": "CPU",
+    "level": 1
+  },
+  {
+    "id": "IE103",
+    "materia": "Introduccion a la Informatica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "correlativas": "CPU",
+    "level": 1
+  },
+  {
+    "id": "CPU",
+    "materia": "Ciclo Preparatorio Universitario",
+    "creditos": 0,
+    "categoria": "CPU",
+    "level": 0
+  },
+  {
+    "id": "CB05",
+    "materia": "Calculo I",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 2,
+    "correlativasRegularizadas": "CB01"
+  },
+  {
+    "id": "CB06",
+    "materia": "Algebra y Geometria Analitica I",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 2,
+    "correlativas": "IE103-CB03-CB01-CB02"
+  },
+  {
+    "id": "IE004",
+    "materia": "Sistemas de Representacion Grafica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 2,
+    "correlativasRegularizadas": "CB01"
+  },
+  {
+    "id": "CB10",
+    "materia": "Fisica I",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 2,
+    "correlativasRegularizadas": "CB01"
+  },
+  {
+    "id": "CB09",
+    "materia": "Calculo II",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 3,
+    "correlativas": "CB01",
+    "correlativasRegularizadas": "CB05-CB06"
+  },
+  {
+    "id": "CB28",
+    "materia": "Algebra y Geometria Analitica II",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 3,
+    "correlativasRegularizadas": "CB06"
+  },
+  {
+    "id": "IE107",
+    "materia": "Informatica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 3,
+    "correlativas": "IE103",
+    "correlativasRegularizadas": "IE004"
+  },
+  {
+    "id": "CB13",
+    "materia": "Fisica II",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 3,
+    "correlativas": "CB01",
+    "correlativasRegularizadas": "CB05-CB10"
+  },
+  {
+    "id": "CB30",
+    "materia": "Calculo III",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 4,
+    "correlativas": "CB05-CB06",
+    "correlativasRegularizadas": "CB09-CB28"
+  },
+  {
+    "id": "IE011",
+    "materia": "Programacion",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 4,
+    "correlativas": "IE004",
+    "correlativasRegularizadas": "CB06-IE107"
+  },
+  {
+    "id": "IE102",
+    "materia": "Probabilidad y Estadistica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 4,
+    "correlativas": "CB05-CB06",
+    "correlativasRegularizadas": "CB09"
+  },
+  {
+    "id": "CB15",
+    "materia": "Fisica III",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 4,
+    "correlativas": "CB05-CB06-CB10",
+    "correlativasRegularizadas": "CB09-CB13"
+  }
+]

@@ -70,7 +70,7 @@ const MateriaControl = () => {
     [displayedNode, getNode],
   );
 
-  return displayedNode && logged && node?.id !== "CBC" ? (
+  return displayedNode && node && node.id !== "CBC" && node.id !== "CPU" ? (
     <Flex alignItems="center" height="fit-content">
       <Flex {...ControlProps} alignItems="center" p={1}>
         {node && node.nota > 0 ? (
@@ -143,13 +143,23 @@ const MateriaControl = () => {
           </Button>
         </Tooltip>
 
-        <Tooltip {...TooltipProps} label="Poner en Final">
+        <Tooltip {...TooltipProps} label="En Final">
+          <Button
+            {...ButtonProps}
+            color="orange.400"
+            onClick={() => aprobar(displayedNode, -2)}
+          >
+            <strong>F</strong>
+          </Button>
+        </Tooltip>
+
+        <Tooltip {...TooltipProps} label="Regularizar">
           <Button
             {...ButtonProps}
             color="yellow.300"
             onClick={() => aprobar(displayedNode, -1)}
           >
-            <strong>F</strong>
+            <strong>R</strong>
           </Button>
         </Tooltip>
       </Flex>

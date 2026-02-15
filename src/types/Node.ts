@@ -18,6 +18,8 @@ export interface NodeType {
   creditos: number;
   requiere: number | undefined;
   requiereCBC: boolean | undefined;
+  correlativas: string | undefined;
+  correlativasRegularizadas: string | undefined;
   materia: string;
   font: { color: "white" | "black" } | undefined;
   color: string | undefined;

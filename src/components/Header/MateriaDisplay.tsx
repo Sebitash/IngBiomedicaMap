@@ -45,7 +45,7 @@ const MateriaDisplay = () => {
 
   useHotkeys("left", () => {
     if (!node) return;
-    if (["*CBC", "CBC"].includes(node.categoria)) return;
+     if (["*CBC", "CBC", "*CPU", "CPU"].includes(node.categoria)) return;
     const prevCuatri = node.cuatrimestre
       ? node.cuatrimestre - 0.5
       : getCurrentCuatri();
@@ -54,7 +54,7 @@ const MateriaDisplay = () => {
 
   useHotkeys("right", () => {
     if (!node) return;
-    if (["*CBC", "CBC"].includes(node.categoria)) return;
+     if (["*CBC", "CBC", "*CPU", "CPU"].includes(node.categoria)) return;
     const nextCuatri = node.cuatrimestre
       ? node.cuatrimestre + 0.5
       : getCurrentCuatri();

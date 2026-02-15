@@ -4,10 +4,11 @@ import { NodeType } from "./types/Node";
 import { UserType } from "./types/User";
 import { GraphType } from "./types/Graph";
 
-const FONT_AFUERA = ["CBC", "*CBC"];
+const FONT_AFUERA = ["CBC", "*CBC", "CPU", "*CPU"];
 const ALWAYS_SHOW = [
   "Materias Obligatorias",
   "CBC",
+  "CPU",
   "Fin de Carrera (Obligatorio)",
 ];
 
@@ -41,6 +42,8 @@ class Node implements NodeType {
   creditos: number;
   requiere: number | undefined;
   requiereCBC: boolean | undefined;
+  correlativas: string | undefined;
+  correlativasRegularizadas: string | undefined;
   materia: string;
   opacity: number | undefined;
   font: { color: "white" | "black" } | undefined;
@@ -80,8 +83,8 @@ class Node implements NodeType {
     // - Fin de Carrera (Obligatorio): Tesis/TPP de las carreras que no te dejan elegir
     this.group = this.categoria;
 
-    // Nota = -2 => desaprobada
-    // Nota = -1 => en final
+    // Nota = -2 => en final
+    // Nota = -1 => regularizada
     // Nota = 0 => aprobada por equivalencia
     // Nota = 4-10 => aprobada con nota
     this.nota = -2;
@@ -107,7 +110,7 @@ class Node implements NodeType {
   }
 
   aprobar(nota: number) {
-    if (nota < -1) return;
+    if (nota < -2) return;
 
     this.aprobada = nota > -1;
     this.nota = nota;
@@ -134,15 +137,35 @@ class Node implements NodeType {
   //  es MUY poco claro en todos los planes de FIUBA, y todos varian,
   //  asi que puede no ser 100% fiel a la realidad
   isHabilitada(ctx: GraphType.Info) {
-    const { getters, getNode, creditos } = ctx;
+    const { getNode, creditos } = ctx;
     const { creditosTotales, creditosCBC } = creditos;
-    const from = getters.NodesFrom(this.id);
-    let todoAprobado = true;
-    for (let id of from) {
-      const m = getNode(id);
-      if (m) {
-        todoAprobado = todoAprobado && m.aprobada;
+    const aprobadas = this.correlativas
+      ? this.correlativas.split("-")
+      : [];
+    const regularizadas = this.correlativasRegularizadas
+      ? this.correlativasRegularizadas.split("-")
+      : [];
+
+    // Si no tiene ninguna correlativa, no está habilitada
+    if (aprobadas.length === 0 && regularizadas.length === 0) {
+      if (this.requiere) {
+        if (this.requiereCBC) {
+          return creditosTotales >= this.requiere;
+        } else {
+          return creditosTotales - creditosCBC >= this.requiere;
+        }
       }
+      return false;
+    }
+
+    let todoAprobado = true;
+    for (let id of aprobadas) {
+      const m = getNode(id);
+      todoAprobado = todoAprobado && !!m && m.aprobada;
+    }
+    for (let id of regularizadas) {
+      const m = getNode(id);
+      todoAprobado = todoAprobado && !!m && m.nota >= -1;
     }
     if (this.requiere) {
       if (this.requiereCBC) {
@@ -167,34 +190,40 @@ class Node implements NodeType {
 
     let grupoDefault = this.categoria;
     if (this.aprobada && this.nota >= 0) grupoDefault = "Aprobadas";
-    else if (this.nota === -1) grupoDefault = "En Final";
+    else if (this.nota === -2) grupoDefault = "En Final";
+    else if (this.nota === -1) grupoDefault = "Regularizadas";
     else if (this.cuatrimestre === getCurrentCuatri())
       grupoDefault = "Cursando";
-    else if (this.isHabilitada(ctx)) grupoDefault = "Habilitadas";
+    else if (this.isHabilitada(ctx)) {
+      if (this.categoria === "Materias Obligatorias")
+        grupoDefault = "ObligatoriasHabilitadas";
+      else grupoDefault = "Habilitadas";
+    } else grupoDefault = "NoHabilitadas";
     this.group = grupoDefault;
 
     let labelDefault = breakWords(this.materia);
-    if (showLabels && this.id !== "CBC") {
+    if (showLabels && this.id !== "CBC" && this.id !== "CPU") {
       if (this.aprobada && this.nota > 0)
         labelDefault += "\n[" + this.nota + "]";
       else if (this.aprobada && this.nota === 0)
         labelDefault += "\n[Equivalencia]";
-      else if (this.nota === -1) labelDefault += "\n[En Final]";
+      else if (this.nota === -2) labelDefault += "\n[En Final]";
+      else if (this.nota === -1) labelDefault += "\n[Regularizada]";
       else if (this.cuatrimestre === getCurrentCuatri())
         labelDefault += "\n[Cursando]";
     }
     this.label = labelDefault;
 
     // El CBC (y sus materias dentro) usa sus propios colores
-    if (this.categoria === "*CBC") {
+    if (this.categoria === "*CBC" || this.categoria === "*CPU") {
       if (this.group === "Habilitadas") this.color = COLORS.aprobadas[100];
       if (this.group === "Aprobadas") this.color = COLORS.aprobadas[400];
     }
 
-    if (this.categoria === "CBC") {
-      const materiasCBC = getters.MateriasAprobadasCBC();
-      const promedioCBC = promediar(materiasCBC);
-      if (showLabels && promedioCBC) this.label += "\n[" + promedioCBC + "]";
+    if (this.categoria === "CBC" || this.categoria === "CPU") {
+      const materiasBase = getters.MateriasAprobadasCBC();
+      const promedioBase = promediar(materiasBase);
+      if (showLabels && promedioBase) this.label += "\n[" + promedioBase + "]";
       if (this.isHabilitada(ctx)) {
         this.color = COLORS.aprobadas[400];
       } else {

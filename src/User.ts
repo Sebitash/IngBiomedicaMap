@@ -13,7 +13,7 @@ import { UserType } from "./types/User";
 // maps contiene todos los mapas que tiene el usuario en la DB
 const initialUser: UserType.Info = {
   padron: "",
-  carrera: CARRERAS.find((c) => c.id === "informatica-2020")!,
+  carrera: CARRERAS.find((c) => c.id === "biomedica-2022")!,
   orientacion: null,
   finDeCarrera: null,
   allLogins: [],

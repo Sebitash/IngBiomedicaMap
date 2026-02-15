@@ -46,6 +46,16 @@ export const COLORS = {
     400: "#FEDC5D",
     500: "#E1C252",
   },
+  nohabilida: {
+    50: "#E8E8E8",
+    400: "#B0B0B0",
+    500: "#808080",
+  },
+  deshabilitada: {
+    50: "#D4E4F7",
+    400: "#5B9FD4",
+    500: "#3678B8",
+  },
   // https://color.adobe.com/create/color-wheel starting from #FF9999
   orientacion1: {
     50: "#FFE5E5",

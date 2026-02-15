@@ -158,6 +158,14 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
             smooth: { enabled: true, type: "curvedCW", roundness: 0.1 },
           });
         });
+      if (n.correlativasRegularizadas)
+        n.correlativasRegularizadas.split("-").forEach((c) => {
+          e.push({
+            from: c,
+            to: n.id,
+            smooth: { enabled: true, type: "curvedCW", roundness: 0.1 },
+          });
+        });
       if (n.requiere) e.push({ from: "CBC", to: n.id, color: "transparent" });
       return e;
     });
@@ -232,7 +240,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
           .ALL()
           .map((n) => getNode(n.id).desaprobar().cursando(undefined)),
       );
-      aprobar("CBC", 0);
+      if (getNode("CPU")) aprobar("CPU", 0);
+      else aprobar("CBC", 0);
+      actualizar();
       actualizarNiveles();
       network.fit();
     }
@@ -259,7 +269,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     ].reduce(accCreditos, 0);
     const creditosCBC = [...getters.CBC()].reduce(accCreditos, 0);
     nodes.update(
-      nodes.map((n) =>
+      nodes.get().map((n) =>
         getNode(n.id).actualizar({
           getters,
           user,
@@ -416,12 +426,13 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
   const aprobar = (id: string, nota: number) => {
     if (nota < -1) return;
     const node = getNode(id);
-    nodes.update(node.aprobar(nota) ?? node);
+    nodes.update([node.aprobar(nota) ?? node]);
     actualizar();
   };
 
   const desaprobar = (id: string) => {
-    nodes.update(getNode(id).desaprobar());
+    const node = getNode(id);
+    nodes.update([node.desaprobar()]);
     actualizar();
   };
 
@@ -671,8 +682,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     // Primeros creditos a mostrar: los 38 del CBC
     // Lo mostramos como siempre aprobado del todo
     const cbc = getters.CBC();
+    const baseKey = cbc.some((n) => n.categoria === "*CPU") ? "CPU" : "CBC";
     creditos.push({
-      ...CREDITOS["CBC"],
+      ...CREDITOS[baseKey],
       creditosNecesarios: cbc.reduce(accCreditos, 0),
       creditos: cbc.reduce(accCreditos, 0),
       nmaterias: cbc.length,
@@ -905,7 +917,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     doubleClick: (e: ReactGraphVisType.ClickEvent) => {
       // dobleclick: aprobar/desaprobar
       const id = e.nodes[0];
-      if (id === "CBC") return;
+      if (id === "CBC" || id === "CPU") return;
       const node = getNode(id);
       if (!node) return;
 
@@ -950,6 +962,14 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
         network.selectNodes([]);
         return;
       }
+      
+      // CPU está fijo, no se puede clickear
+      if (id === "CPU") {
+        deselectNode();
+        network.selectNodes([]);
+        return;
+      }
+      
       selectNode(id, true);
     },
     deselectNode: (e: ReactGraphVisType.DeselectEvent) => {
@@ -979,6 +999,8 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
               (c) =>
                 c !== "CBC" &&
                 c !== "*CBC" &&
+                c !== "CPU" &&
+                c !== "*CPU" &&
                 c !== "Materias Obligatorias" &&
                 c !== "Fin de Carrera (Obligatorio)" &&
                 c !== "Fin de Carrera",
@@ -994,7 +1016,10 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     MateriasAprobadasCBC: () =>
       nodes
         ? nodes.get({
-            filter: (n) => n.categoria === "*CBC" && n.aprobada && n.nota > 0,
+            filter: (n) =>
+              (n.categoria === "*CBC" || n.categoria === "*CPU") &&
+              n.aprobada &&
+              n.nota > 0,
             fields: ["nota"],
           })
         : [],
@@ -1005,7 +1030,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
               n.aprobada &&
               n.nota >= 0 &&
               n.categoria !== "*CBC" &&
-              n.categoria !== "CBC",
+              n.categoria !== "CBC" &&
+              n.categoria !== "*CPU" &&
+              n.categoria !== "CPU",
             fields: ["nota", "creditos"],
           })
         : [],
@@ -1016,7 +1043,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
               n.aprobada &&
               n.nota > 0 &&
               n.categoria !== "*CBC" &&
-              n.categoria !== "CBC",
+              n.categoria !== "CBC" &&
+              n.categoria !== "*CPU" &&
+              n.categoria !== "CPU",
             fields: ["nota", "creditos"],
           })
         : [],
@@ -1030,7 +1059,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     CBC: () =>
       nodes
         ? nodes.get({
-            filter: (n) => n.categoria === "*CBC",
+            filter: (n) => n.categoria === "*CBC" || n.categoria === "*CPU",
           })
         : [],
     Obligatorias: () =>
@@ -1056,6 +1085,8 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
             filter: (n) =>
               n.categoria !== "CBC" &&
               n.categoria !== "*CBC" &&
+              n.categoria !== "CPU" &&
+              n.categoria !== "*CPU" &&
               n.categoria !== "Materias Obligatorias" &&
               n.categoria !== "Fin de Carrera" &&
               n.categoria !== "Fin de Carrera (Obligatorio)" &&
