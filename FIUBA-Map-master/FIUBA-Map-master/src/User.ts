@@ -1,9 +1,7 @@
 import React from "react";
 import { CARRERAS } from "./carreras";
-import * as C from "./constants";
-import { getGraphs, postGraph, postUser } from "./dbutils";
+import { getGraphs, getUserLogins, postGraph, postUser } from "./dbutils";
 import { UserType } from "./types/User";
-import { GoogleSheetAPI } from "./types/externalAPI";
 
 // La base de datos se parte en dos tablas (relacional... ponele)
 // La clave que une a las bases de datos es la combinación de padron y carrera
@@ -59,46 +57,14 @@ const Login = (): UserType.Context => {
       return false;
     }
 
-    const padrones = await fetch(
-      `${C.SPREADSHEET}/${C.SHEETS.user}!B:B?majorDimension=COLUMNS&key=${C.KEY}`,
-    )
-      .then((res) => res.json())
-      .then((res: GoogleSheetAPI.UserValueRange) =>
-        !res.error ? res.values[0] : null,
-      );
+    const allLogins = await getUserLogins(padron);
 
-    if (!padrones) {
-      setLoading(false);
-      return false;
-    }
-
-    const indexes: number[] = [];
-    let j = -1;
-    while ((j = padrones.indexOf(padron, j + 1)) !== -1) {
-      indexes.push(j);
-    }
-
-    if (!indexes.length) {
+    if (!allLogins || !allLogins.length) {
       setLoading(false);
       return false;
     }
 
     setLoggingIn(true);
-    const ranges = indexes.map(
-      (index) => `&ranges=${C.SHEETS.user}!${index + 1}:${index + 1}`,
-    );
-
-    const data = await fetch(
-      `${C.SPREADSHEET}:batchGet?key=${C.KEY}${ranges.join("")}`,
-    ).then((res) =>
-      res.json().then((res: GoogleSheetAPI.BatchGet) => res.valueRanges),
-    );
-
-    const allLogins: UserType.CarreraInfo[] = data.map((d) => ({
-      carreraid: d.values[0][2],
-      orientacionid: d.values[0][3],
-      findecarreraid: d.values[0][4],
-    }));
 
     let carrera = CARRERAS.find((c) => c.id === "informatica-2020")!;
     let orientacion: UserType.Orientacion | undefined = undefined;

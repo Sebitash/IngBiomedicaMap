@@ -48,6 +48,9 @@ export const SHEETS = {
 export const KEY =
   process.env.REACT_APP_FEDE_KEY || "AIzaSyA9snz4CXDq_K8fJeUXkRtRZAQM90HTFp4";
 
+// Local mock mode to run without external DB/Google APIs.
+export const OFFLINE = process.env.REACT_APP_OFFLINE === "true";
+
 // Dibuja un rombo
 const drawFinDeCarrera = ({
   ctx,
