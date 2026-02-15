@@ -17,13 +17,15 @@ const StatusBar = () => {
   const { getters, toggleCheckbox, creditos } = React.useContext(GraphContext);
   const { user } = React.useContext(UserContext);
 
-  const checkboxList = user.carrera.creditos.checkbox ?? [];
+  const checkboxList = React.useMemo(
+    () => user.carrera.creditos.checkbox ?? [],
+    [user.carrera.creditos.checkbox],
+  );
   const pruebaSuficiencia = React.useMemo(
     () => checkboxList.find((c) => c.nombre === "Prueba de suficiencia"),
     [checkboxList],
   );
 
-  const pruebaSuficienciaTotal = pruebaSuficiencia ? 1 : 0;
   const pruebaSuficienciaAprobada = pruebaSuficiencia?.check ? 1 : 0;
 
   const trabajoProfesional = React.useMemo(
@@ -31,7 +33,6 @@ const StatusBar = () => {
     [checkboxList],
   );
 
-  const trabajoProfesionalTotal = trabajoProfesional ? 1 : 0;
   const trabajoProfesionalAprobada = trabajoProfesional?.check ? 1 : 0;
 
   const obligatoriasTotal = 44; // momentaneo
@@ -93,8 +94,6 @@ const StatusBar = () => {
     () => promediar(getters.MateriasAprobadasSinCBC()),
     [getters],
   );
-
-  const checkboxes = user.carrera.creditos.checkbox ?? [];
 
   return (
     <Flex
@@ -164,7 +163,7 @@ const StatusBar = () => {
         </Box>
 
         <Flex alignItems="center" gap={4} flexWrap="wrap">
-          {checkboxes.map((c) => (
+          {checkboxList.map((c) => (
             <LightMode key={c.nombre}>
               <Box
                 cursor="pointer"
