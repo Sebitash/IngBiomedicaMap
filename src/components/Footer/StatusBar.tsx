@@ -18,36 +18,52 @@ const StatusBar = () => {
   const { user } = React.useContext(UserContext);
 
   const checkboxList = user.carrera.creditos.checkbox ?? [];
-  const checkboxMaterias = checkboxList.filter((c) => c.cuentaMateria);
-  const checkboxMateriasTotal = checkboxMaterias.length;
-  const checkboxMateriasAprobadas = checkboxMaterias.filter(
-    (c) => c.check,
-  ).length;
-
-  const obligatoriasTotal = React.useMemo(
-    () => getters.CategoriaOnly("Materias Obligatorias").length,
-    [getters],
+  const pruebaSuficiencia = React.useMemo(
+    () => checkboxList.find((c) => c.nombre === "Prueba de suficiencia"),
+    [checkboxList],
   );
 
+  const pruebaSuficienciaTotal = pruebaSuficiencia ? 1 : 0;
+  const pruebaSuficienciaAprobada = pruebaSuficiencia?.check ? 1 : 0;
+
+  const trabajoProfesional = React.useMemo(
+    () => checkboxList.find((c) => c.nombre === "Trabajo profesional"),
+    [checkboxList],
+  );
+
+  const trabajoProfesionalTotal = trabajoProfesional ? 1 : 0;
+  const trabajoProfesionalAprobada = trabajoProfesional?.check ? 1 : 0;
+
+  const obligatoriasTotal = 44; // momentaneo
+
   const obligatoriasAprobadas = React.useMemo(
-    () => getters.ObligatoriasAprobadas().length,
-    [getters],
+    () =>
+      getters.ObligatoriasAprobadas().length +
+      trabajoProfesionalAprobada +
+      pruebaSuficienciaAprobada,
+    [getters, trabajoProfesionalAprobada, pruebaSuficienciaAprobada],
   );
 
   const materiasAprobadas = React.useMemo(
-    () => obligatoriasAprobadas + checkboxMateriasAprobadas,
-    [checkboxMateriasAprobadas, obligatoriasAprobadas],
+    () => obligatoriasAprobadas,
+    [obligatoriasAprobadas],
   );
 
-  const materiasTotal = React.useMemo(
-    () => obligatoriasTotal + checkboxMateriasTotal + 11, //momentaneo, hasta que se agreguen las electivas como checkbox
-    [checkboxMateriasTotal, obligatoriasTotal],
-  );
+  const materiasTotal = obligatoriasTotal + 2; // momentaneo
 
-  const materiasPercent = React.useMemo(() => {
+  const materiasPercentValue = React.useMemo(() => {
     if (!materiasTotal) return 0;
-    return Math.round((materiasAprobadas / materiasTotal) * 100);
+    return (materiasAprobadas / materiasTotal) * 100;
   }, [materiasAprobadas, materiasTotal]);
+
+  const materiasPercentLabel = React.useMemo(
+    () =>
+      materiasPercentValue.toLocaleString("es-AR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    [materiasPercentValue],
+  );
 
   const obligatoriasPercent = React.useMemo(() => {
     if (!obligatoriasTotal) return 0;
@@ -96,7 +112,7 @@ const StatusBar = () => {
             <StatNumber>
               {materiasAprobadas} de {materiasTotal} {" "}
               <Badge colorScheme="green" variant="solid">
-                {materiasPercent}%
+                {materiasPercentLabel}%
               </Badge>
             </StatNumber>
           </Stat>
