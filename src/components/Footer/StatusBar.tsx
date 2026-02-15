@@ -13,13 +13,6 @@ import React from "react";
 import { GraphContext, UserContext } from "../../MapContext";
 import { promediar } from "../../utils";
 
-const NON_MATERIA_CATEGORIAS = new Set([
-  "CBC",
-  "CPU",
-  "Fin de Carrera",
-  "Fin de Carrera (Obligatorio)",
-]);
-
 const StatusBar = () => {
   const { getters, toggleCheckbox, creditos } = React.useContext(GraphContext);
   const { user } = React.useContext(UserContext);
