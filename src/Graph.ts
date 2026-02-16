@@ -180,6 +180,26 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     return { nodes, edges, groups, key };
   }, [user.carrera.graph, user.carrera.id]);
 
+  const setCheckboxTrue = (nombre: string) => {
+    if (!user.carrera.creditos.checkbox) return false;
+    const checkbox = user.carrera.creditos.checkbox.find(
+      (ch) => ch.nombre === nombre,
+    );
+    if (!checkbox || checkbox.check) return false;
+    checkbox.check = true;
+    return true;
+  };
+
+  const setCheckboxFalse = (nombre: string) => {
+    if (!user.carrera.creditos.checkbox) return false;
+    const checkbox = user.carrera.creditos.checkbox.find(
+      (ch) => ch.nombre === nombre,
+    );
+    if (!checkbox || !checkbox.check) return false;
+    checkbox.check = false;
+    return true;
+  };
+
   // Cuando cambia la carrera, poblamos el nuevo grafo con lo que hay en la DB
   // (o, simplemente aprobamos el CBC si el usuario no tenia nada)
   React.useEffect(() => {
@@ -214,7 +234,15 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
       console.log('[Graph] Updating nodes:', toUpdate.length);
 
       // Actualizamos su metadata
-      map.checkboxes?.forEach((c) => toggleCheckbox(c, true));
+      map.checkboxes?.forEach((c) => toggleCheckbox(c, true, false));
+      const proyectoFinalAprobado = map.materias?.some(
+        (m) => m.id === "IB070" && typeof m.nota === "number" && m.nota >= 0,
+      );
+      if (proyectoFinalAprobado) {
+        setCheckboxTrue("Trabajo profesional");
+      } else {
+        setCheckboxFalse("Trabajo profesional");
+      }
       optativasDispatch({ action: "override", value: map.optativas ?? [] });
       setAplazos(map.aplazos || 0);
 
@@ -412,6 +440,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     if (nota < -1) return;
     const node = getNode(id);
     nodes.update([node.aprobar(nota) ?? node]);
+    if (id === "IB070") {
+      setCheckboxTrue("Trabajo profesional");
+    }
     actualizar();
   };
 
@@ -419,6 +450,9 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     console.log('[desaprobar] Called with:', { id });
     const node = getNode(id);
     nodes.update([node.desaprobar()]);
+    if (id === "IB070") {
+      setCheckboxFalse("Trabajo profesional");
+    }
     actualizar();
   };
 
@@ -436,7 +470,7 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     actualizarNiveles();
   };
 
-  const toggleCheckbox = (c: string, forceTrue = false) => {
+  const toggleCheckbox = (c: string, forceTrue = false, syncMateria = true) => {
     if (!user.carrera.creditos.checkbox) {
       return;
     }
@@ -450,6 +484,16 @@ const Graph = (userContext: UserType.Context): GraphType.Context => {
     const value = !!checkbox.check;
 
     checkbox.check = forceTrue ? true : !value;
+    if (syncMateria && c === "Trabajo profesional") {
+      const node = getNode("IB070");
+      if (node) {
+        if (checkbox.check) {
+          nodes.update([node.aprobar(4) ?? node]);
+        } else {
+          nodes.update([node.desaprobar()]);
+        }
+      }
+    }
     actualizar();
   };
 

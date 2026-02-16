@@ -300,5 +300,95 @@
     "level": 8,
     "correlativas": "IE025-IB002-IE011-CB30-IE107-CB15",
     "correlativasRegularizadas": "IB005-IB007-IB009"
+  },
+  {
+    "id": "IB014",
+    "materia": "Ingenieria Biomedica II",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 9,
+    "correlativas": "IB010-IB005-IB007-IB009",
+    "correlativasRegularizadas": "IB013-IB011-IE026"
+  },
+  {
+    "id": "IB015",
+    "materia": "Ingenieria Clinica",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 9,
+    "correlativas": "IB005-IB009-IB004-IB010",
+    "correlativasRegularizadas": "IB012-IB013"
+  },
+  {
+    "id": "IE031",
+    "materia": "Economia",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 9,
+    "correlativas": "CB03",
+    "correlativasRegularizadas": "IE029"
+  },
+  {
+    "id": "IB016",
+    "materia": "Biomecanica y Biomateriales",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 9,
+    "correlativas": "IB005-IB007-IB009-IB006",
+    "correlativasRegularizadas": "IB010-IE026"
+  },
+  {
+    "id": "IE033",
+    "materia": "Organizacion Industrial",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 10,
+    "correlativas": "CB03",
+    "correlativasRegularizadas": "IE029"
+  },
+  {
+    "id": "IB017",
+    "materia": "Ingenieria Biomedica III",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 10,
+    "correlativas": "IE025-IB011-IE026-IB013-IE013",
+    "correlativasRegularizadas": "IB014-IB008"
+  },
+  {
+    "id": "IB018",
+    "materia": "Practica Profesional Supervisada",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 10,
+    "correlativas": "IB013-IE029-IB012",
+    "correlativasRegularizadas": "IB015-IE031"
+  },
+  {
+    "id": "IE032",
+    "materia": "Etica y Ejercicio Profesional",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 11,
+    "correlativas": "CB03",
+    "correlativasRegularizadas": "IE029"
+  },
+  {
+    "id": "IB019",
+    "materia": "Ingenieria de la Rehabilitacion",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 11,
+    "correlativas": "IB008-IB014-IE026-IB010",
+    "correlativasRegularizadas": "IB016-IB017"
+  },
+  {
+    "id": "IB070",
+    "materia": "Proyecto Final Integrador",
+    "creditos": 1,
+    "categoria": "Materias Obligatorias",
+    "level": 11,
+    "correlativas": "IB008-IB014-IE029",
+    "correlativasRegularizadas": "IB017-IE033"
   }
 ]
