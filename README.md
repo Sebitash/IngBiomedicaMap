@@ -27,3 +27,7 @@ Para agregar un feature o fixear un issue hay que clonar el repositorio, instala
 Una vez terminados los cambios, con solo hacer un PR basta (porque la aplicación se compila automáticamente con cada push a master).
 
 Hay que tener en cuenta que localmente no funciona la base de datos, para evitar que se le pueda pegar desde cualquier lado. Si se necesita arreglar algo que interactua con la db, pedirle a algún autor la API key correspondiente.
+
+## Supabase
+
+La base de datos en Supabase tiene un seed diario programado con `pg_cron`: una vez por día crea un usuario nuevo con padron numérico incremental y le guarda una materia aprobada por defecto. Eso mantiene actividad periódica en la base sin depender de que alguien tenga la app abierta.
